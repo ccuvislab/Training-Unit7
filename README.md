@@ -167,10 +167,10 @@ Complete at least the following items:
 ### 4.3 建議結果表格 / Suggested Result Table
 
 | Model | Accuracy | Precision | Recall | F1-score | AP50 | mAP |
-| :--- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
-| VGG16 |  |  |  |  |  |  |  |
-| ResNet18 |  |  |  |  |  |  |  |
-| ResNet50 |  |  |  |  |  |  |  |
+| :--- | ---: | ---: | ---: | ---: | ---: | ---: |
+| VGG16 |  |  |  |  |  |  |
+| ResNet18 |  |  |  |  |  |  |
+| ResNet50 |  |  |  |  |  |  |
 
 此表格呈現的是模型的整體評估分數，不是要求學生再次輸出每張圖片的好／壞分類結果。
 
