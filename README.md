@@ -172,7 +172,7 @@ Complete at least the following items:
 | ResNet18 |  |  |  |  |  |  |
 | ResNet50 |  |  |  |  |  |  |
 
-此表格呈現的是模型的整體評估分數，不是要求學生再次輸出每張圖片的好／壞分類結果。
+此表格呈現的是模型的整體評估分數，不是要求同學再次輸出每張圖片的好／壞分類結果。
 
 This table summarizes overall model evaluation scores and does not require students to produce another Good/Bad prediction for each image.
 
