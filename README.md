@@ -5,58 +5,58 @@
 This assignment requires using CNN models (e.g., VGG16, ResNet18, ResNet50) to complete an image classification task, with Weights & Biases (wandb) utilized for training monitoring and logging.The assignment consists of a basic task and an advanced task.
 
 * **基本任務（二分類） / Basic Task (Binary Classification)**：
-* 使用模型判斷每張分配到的圖片屬於：
+使用模型判斷每張分配到的圖片屬於：
 
-* Use a model to determine whether each assigned image belongs to one of the following classes:
+Use a model to determine whether each assigned image belongs to one of the following classes:
 
-* - **好影像（Good）**
-* - **壞影像（Bad）**
+- **好影像（Good）**
+- **壞影像（Bad）**
 
-* 「好」與「壞」的具體判定方式及區分數值由每位同學自行制定。例如，可先建立一套影像品質評分方式，並規定總分高於某個數值時為好影像，低於該數值時為壞影像。
+「好」與「壞」的具體判定方式及區分數值由每位同學自行制定。例如，可先建立一套影像品質評分方式，並規定總分高於某個數值時為好影像，低於該數值時為壞影像。
 
-* Each student must define the criteria and numerical threshold used to distinguish Good images from Bad images. For example, students may establish an image-quality scoring system and define images with scores above a selected threshold as Good and those below the threshold as Bad.
+Each student must define the criteria and numerical threshold used to distinguish Good images from Bad images. For example, students may establish an image-quality scoring system and define images with scores above a selected threshold as Good and those below the threshold as Bad.
 
-* 同學制定的規則必須符合以下要求：
+同學制定的規則必須符合以下要求：
 
-* The student-defined criteria must satisfy the following requirements:
+The student-defined criteria must satisfy the following requirements:
 
-* 1. 判定規則與數值門檻必須在標註前明確訂定。  
-*    The decision rules and numerical threshold must be determined before annotation begins.
-* 2. 所有圖片必須使用相同標準，不可依模型預測結果任意修改規則。  
-*    The same criteria must be applied to all images and must not be modified based on model predictions.
-* 3. 判定方式必須可以被他人理解與重現，不可只以個人直覺作為依據。  
-*    The criteria must be understandable and reproducible by others rather than based only on personal intuition.
-* 4. 報告中必須列出完整判定規則、計分方式及好／壞區分門檻。  
-*    The report must clearly describe the complete decision rules, scoring method, and Good/Bad threshold.
-* 5. 報告中至少提供 3 張好影像與 3 張壞影像作為標註範例。  
-*    The report must include at least three Good images and three Bad images as annotation examples.
+1. 判定規則與數值門檻必須在標註前明確訂定。  
+   The decision rules and numerical threshold must be determined before annotation begins.
+2. 所有圖片必須使用相同標準，不可依模型預測結果任意修改規則。  
+   The same criteria must be applied to all images and must not be modified based on model predictions.
+3. 判定方式必須可以被他人理解與重現，不可只以個人直覺作為依據。  
+   The criteria must be understandable and reproducible by others rather than based only on personal intuition.
+4. 報告中必須列出完整判定規則、計分方式及好／壞區分門檻。  
+   The report must clearly describe the complete decision rules, scoring method, and Good/Bad threshold.
+5. 報告中至少提供 3 張好影像與 3 張壞影像作為標註範例。  
+   The report must include at least three Good images and three Bad images as annotation examples.
 
-* 可參考道路是否清楚、落石或泥土是否可辨識、影像是否模糊、曝光是否正常及重要區域是否被遮擋等因素制定評分規則，但最終仍只需產生 **Good** 與 **Bad** 兩種標籤。
+可參考道路是否清楚、落石或泥土是否可辨識、影像是否模糊、曝光是否正常及重要區域是否被遮擋等因素制定評分規則，但最終仍只需產生 **Good** 與 **Bad** 兩種標籤。
 
-* Possible factors include road visibility, whether rockfalls or mud can be recognized, image blur, exposure quality, and occlusion of important regions. However, the final annotation must contain only the two labels **Good** and **Bad**.
+Possible factors include road visibility, whether rockfalls or mud can be recognized, image blur, exposure quality, and occlusion of important regions. However, the final annotation must contain only the two labels **Good** and **Bad**.
 
 * **進階任務 / Advanced Task**：
-* 學生需保留模型對每張圖片輸出的 logits、Softmax 機率、Sigmoid 分數或其他連續信心分數，並使用論文常見的評估指標，對模型表現進行量化評分與分析。若某項指標需要離散預測結果，學生可以設定 confidence threshold 將連續分數轉換成預測類別。
+學生需保留模型對每張圖片輸出的 logits、Softmax 機率、Sigmoid 分數或其他連續信心分數，並使用論文常見的評估指標，對模型表現進行量化評分與分析。若某項指標需要離散預測結果，學生可以設定 confidence threshold 將連續分數轉換成預測類別。
 
-* Students must retain the logits, Softmax probabilities, Sigmoid scores, or other continuous confidence scores produced by the model for each image. These scores must then be evaluated using metrics commonly reported in * papers. When a metric requires discrete predictions, students may apply a confidence threshold to convert continuous scores into predicted classes. 
+Students must retain the logits, Softmax probabilities, Sigmoid scores, or other continuous confidence scores produced by the model for each image. These scores must then be evaluated using metrics commonly reported in papers. When a metric requires discrete predictions, students may apply a confidence threshold to convert continuous scores into predicted classes. 
 
-* 報告中至少需要計算並分析下列五項評估項目：
+報告中至少需要計算並分析下列五項評估項目：
 
-* The report must calculate and analyze at least the following five evaluation items:
+The report must calculate and analyze at least the following five evaluation items:
 
-* | 評估項目 / Metric | 定義與代表意義 / Definition and Interpretation | 報告分析重點 / Required Analysis |
-* | :--- | :--- | :--- |
-* | **Accuracy** | 在選定 confidence threshold 後，模型預測正確的樣本比例。 / The proportion of samples predicted correctly after applying the selected confidence threshold. | 說明整體正確率，並討論類別不平衡時 Accuracy 是否可能高估模型表現。 / Explain the overall correctness and discuss whether Accuracy may overestimate performance when the classes are imbalanced. |
-* | **Precision** | 在模型判斷為目標類別的樣本中，實際屬於該類別的比例，公式為 `TP / (TP + FP)`。 / The proportion of samples predicted as the target class that actually belong to that class, calculated as `TP / (TP + FP)`. | 說明 False Positive 對模型評分的影響。 / Explain how false positives affect the model score. |
-* | **Recall** | 在所有實際屬於目標類別的樣本中，被模型成功找出的比例，公式為 `TP / (TP + FN)`。 / The proportion of actual target-class samples successfully identified by the model, calculated as `TP / (TP + FN)`. | 說明 False Negative 對模型評分的影響。 / Explain how false negatives affect the model score. |
-* | **F1-score** | Precision 與 Recall 的調和平均，公式為 `2 × Precision × Recall / (Precision + Recall)`。 / The harmonic mean of Precision and Recall, calculated as `2 × Precision × Recall / (Precision + Recall)`. | 分析模型是否能兼顧 Precision 與 Recall，而非只在單一指標取得高分。 / Analyze whether the model balances Precision and Recall rather than performing well on only one metric. |
-* | **AP 與 mAP** | AP 根據連續信心分數，彙整不同 threshold 下的 Precision–Recall 表現；mAP 為各類別 AP 的平均值。 / AP summarizes Precision–Recall performance across confidence thresholds using continuous confidence scores, while mAP is the mean AP across classes. | 繪製 Precision–Recall curve，並說明 AP、各類別 AP 與 mAP 的差異。 / Plot a Precision–Recall curve and explain the differences among AP, class-wise AP, and mAP. |
+| 評估項目 / Metric | 定義與代表意義 / Definition and Interpretation | 報告分析重點 / Required Analysis |
+| :--- | :--- | :--- |
+| **Accuracy** | 在選定 confidence threshold 後，模型預測正確的樣本比例。 / The proportion of samples predicted correctly after applying the selected confidence threshold. | 說明整體正確率，並討論類別不平衡時 Accuracy 是否可能高估模型表現。 / Explain the overall correctness and discuss whether Accuracy may overestimate performance when the classes are imbalanced. |
+| **Precision** | 在模型判斷為目標類別的樣本中，實際屬於該類別的比例，公式為 `TP / (TP + FP)`。 / The proportion of samples predicted as the target class that actually belong to that class, calculated as `TP / (TP + FP)`. | 說明 False Positive 對模型評分的影響。 / Explain how false positives affect the model score. |
+| **Recall** | 在所有實際屬於目標類別的樣本中，被模型成功找出的比例，公式為 `TP / (TP + FN)`。 / The proportion of actual target-class samples successfully identified by the model, calculated as `TP / (TP + FN)`. | 說明 False Negative 對模型評分的影響。 / Explain how false negatives affect the model score. |
+| **F1-score** | Precision 與 Recall 的調和平均，公式為 `2 × Precision × Recall / (Precision + Recall)`。 / The harmonic mean of Precision and Recall, calculated as `2 × Precision × Recall / (Precision + Recall)`. | 分析模型是否能兼顧 Precision 與 Recall，而非只在單一指標取得高分。 / Analyze whether the model balances Precision and Recall rather than performing well on only one metric. |
+| **AP 與 mAP** | AP 根據連續信心分數，彙整不同 threshold 下的 Precision–Recall 表現；mAP 為各類別 AP 的平均值。 / AP summarizes Precision–Recall performance across confidence thresholds using continuous confidence scores, while mAP is the mean AP across classes. | 繪製 Precision–Recall curve，並說明 AP、各類別 AP 與 mAP 的差異。 / Plot a Precision–Recall curve and explain the differences among AP, class-wise AP, and mAP. |
 
-* #### 指標計算時的目標類別 / Target Class for Metric Computation
+#### 指標計算時的目標類別 / Target Class for Metric Computation
 
-* Precision、Recall、F1-score 與單一類別 AP 都需要指定一個目標類別。學生必須在報告中清楚說明計算時將哪一類視為目標類別，並在不同模型之間保持一致。此設定僅用於指標計算，不代表進階任務要求再次執行好／壞圖片分類。
+Precision、Recall、F1-score 與單一類別 AP 都需要指定一個目標類別。學生必須在報告中清楚說明計算時將哪一類視為目標類別，並在不同模型之間保持一致。此設定僅用於指標計算，不代表進階任務要求再次執行好／壞圖片分類。
 
-* Precision, Recall, F1-score, and single-class AP require a target class to be specified. Students must clearly state which class is treated as the target class during metric computation and use the same definition for all models. This setting is used only for evaluation and does not mean that the advanced task requires another round of Good/Bad image classification.
+Precision, Recall, F1-score, and single-class AP require a target class to be specified. Students must clearly state which class is treated as the target class during metric computation and use the same definition for all models. This setting is used only for evaluation and does not mean that the advanced task requires another round of Good/Bad image classification.
 
 ### 學習目標 / Learning Objectives
 
@@ -139,7 +139,7 @@ The advanced task focuses on the scores produced by the model. Therefore, the ev
 
 ### 4.2 進階任務要求 / Advanced Task Requirements
 
-進階任務只要求學生使用模型輸出的分數完成量化評估與分析，不需要重新訓練一個好／壞分類模型，也不需要另外提交逐張圖片的分類結果。可直接使用基本任務中已完成訓練的模型，或選擇其中表現最佳的模型進行深入分析。
+進階任務只要求同學使用模型輸出的分數完成量化評估與分析，不需要重新訓練一個好／壞分類模型，也不需要另外提交逐張圖片的分類結果。可直接使用基本任務中已完成訓練的模型，或選擇其中表現最佳的模型進行深入分析。
 
 The advanced task requires only quantitative evaluation and analysis of the scores produced by the model. Students do not need to train another Good/Bad classifier or submit an additional per-image classification result. They may directly use the models trained in the basic task or select the best-performing model for a more detailed analysis.
 
