@@ -35,28 +35,37 @@ The student-defined criteria must satisfy the following requirements:
 
 Possible factors include road visibility, whether rockfalls or mud can be recognized, image blur, exposure quality, and occlusion of important regions. However, the final annotation must contain only the two labels **Good** and **Bad**.
 
-* **進階任務 / Advanced Task**：
-學生需保留模型對每張圖片輸出的 logits、Softmax 機率、Sigmoid 分數或其他連續信心分數，並使用論文常見的評估指標，對模型表現進行量化評分與分析。若某項指標需要離散預測結果，學生可以設定 confidence threshold 將連續分數轉換成預測類別。
+* **進階任務（品質分數與 Top-100 排序） / Advanced Task (Quality Scoring and Top-100 Ranking)**：
+學生需先從固定的候選圖片集中，人工挑選 100 張「表現最好且最接近真實應用需求」的圖片，作為人工最佳 100 張參考集合。人工挑選規則必須在查看模型結果前制定，且人工最佳 100 張不得用於模型訓練、驗證、權重選擇或超參數調整。
 
-Students must retain the logits, Softmax probabilities, Sigmoid scores, or other continuous confidence scores produced by the model for each image. These scores must then be evaluated using metrics commonly reported in papers. When a metric requires discrete predictions, students may apply a confidence threshold to convert continuous scores into predicted classes. 
+Students must first manually select 100 images that perform best and most closely match real-world application requirements from a fixed candidate image pool. These images form the human-selected Top-100 reference set. The human selection criteria must be defined before reviewing model results, and the human-selected Top-100 images must not be used for model training, validation, checkpoint selection, or hyperparameter tuning.
 
-報告中至少需要計算並分析下列五項評估項目：
+接著，同學需使用人工參考集合以外的品質訓練資料，分別訓練 VGG16、ResNet18 與 ResNet50，使每個模型能對候選圖片產生可排序的品質分數。模型可採用連續分數回歸或 1 至 5 級序位分類，但三個模型必須使用相同的輸出形式，並統一定義為「分數越高代表圖片越好、越接近真實需求」。
 
-The report must calculate and analyze at least the following five evaluation items:
+Students must then train VGG16, ResNet18, and ResNet50 using quality-training data outside the human reference set, so that each model produces a sortable quality score for every candidate image. The models may use continuous-score regression or 1-to-5 ordinal classification, but all three models must use the same output format and the same score direction: a higher score indicates a better image and a closer match to real-world requirements.
 
-| 評估項目 / Metric | 定義與代表意義 / Definition and Interpretation | 報告分析重點 / Required Analysis |
+模型完成訓練後，需使用不同的單張圖片排序分數，將完整候選圖片集由高至低排序，並針對每個模型與排序方式取出前 100 名，再與人工最佳 100 張進行相似度與差異分析。
+
+After training, students must use different per-image ranking scores to sort the complete candidate pool from highest to lowest. The Top-100 images produced by each model and ranking method must then be compared with the human-selected Top-100 set.
+
+報告中至少需要建立並分析下列分數與評估項目：
+
+The report must construct and analyze at least the following scoring methods and evaluation items:
+
+| 項目 / Item | 類型 / Type | 定義與代表意義 / Definition and Interpretation |
 | :--- | :--- | :--- |
-| **Accuracy** | 在選定 confidence threshold 後，模型預測正確的樣本比例。 / The proportion of samples predicted correctly after applying the selected confidence threshold. | 說明整體正確率，並討論類別不平衡時 Accuracy 是否可能高估模型表現。 / Explain the overall correctness and discuss whether Accuracy may overestimate performance when the classes are imbalanced. |
-| **Precision** | 在模型判斷為目標類別的樣本中，實際屬於該類別的比例，公式為 `TP / (TP + FP)`。 / The proportion of samples predicted as the target class that actually belong to that class, calculated as `TP / (TP + FP)`. | 說明 False Positive 對模型評分的影響。 / Explain how false positives affect the model score. |
-| **Recall** | 在所有實際屬於目標類別的樣本中，被模型成功找出的比例，公式為 `TP / (TP + FN)`。 / The proportion of actual target-class samples successfully identified by the model, calculated as `TP / (TP + FN)`. | 說明 False Negative 對模型評分的影響。 / Explain how false negatives affect the model score. |
-| **F1-score** | Precision 與 Recall 的調和平均，公式為 `2 × Precision × Recall / (Precision + Recall)`。 / The harmonic mean of Precision and Recall, calculated as `2 × Precision × Recall / (Precision + Recall)`. | 分析模型是否能兼顧 Precision 與 Recall，而非只在單一指標取得高分。 / Analyze whether the model balances Precision and Recall rather than performing well on only one metric. |
-| **AP 與 mAP** | AP 根據連續信心分數，彙整不同 threshold 下的 Precision–Recall 表現；mAP 為各類別 AP 的平均值。 / AP summarizes Precision–Recall performance across confidence thresholds using continuous confidence scores, while mAP is the mean AP across classes. | 繪製 Precision–Recall curve，並說明 AP、各類別 AP 與 mAP 的差異。 / Plot a Precision–Recall curve and explain the differences among AP, class-wise AP, and mAP. |
+| **原始品質分數 / Raw Quality Score** | 單張圖片排序分數 / Per-image Ranking Score | 直接使用模型對每張圖片輸出的品質分數，依分數由高至低排序。 / Directly use the quality score predicted by the model for each image and rank images from highest to lowest. |
+| **信心修正分數 / Confidence-Adjusted Score** | 單張圖片排序分數 / Per-image Ranking Score | 根據測試時增強、MC Dropout、預測熵或機率差距所估計的不確定性，降低高品質但不穩定預測的排序分數。 / Adjust the quality score using uncertainty estimated from test-time augmentation, MC Dropout, prediction entropy, or probability margins, reducing the rank of high-scoring but unstable predictions. |
+| **集成品質分數 / Ensemble Quality Score** | 單張圖片排序分數 / Per-image Ranking Score | 將 VGG16、ResNet18 與 ResNet50 的分數正規化後取平均，產生三模型集成排序。 / Normalize and average the scores from VGG16, ResNet18, and ResNet50 to create an ensemble ranking. |
+| **Overlap** | Top-100 集合評估 / Top-100 Set Evaluation | 人工最佳 100 張與模型 Top-100 的交集數量除以 100。 / The number of images shared by the human and model Top-100 sets, divided by 100. |
+| **Jaccard** | Top-100 集合評估 / Top-100 Set Evaluation | 人工與模型 Top-100 交集大小除以兩集合聯集大小。 / The intersection size of the human and model Top-100 sets divided by their union size. |
+| **AP** | 完整排序評估 / Full-Ranking Evaluation | 將人工最佳 100 張視為 relevant，使用完整候選圖片集的連續模型分數評估人工選中圖片是否普遍位於排名前段。 / Treat the human-selected Top-100 images as relevant and use continuous scores over the full candidate pool to evaluate whether those images are generally ranked near the top. |
 
-#### 指標計算時的目標類別 / Target Class for Metric Computation
+#### 單張圖片分數與整體評估指標 / Per-Image Scores and Overall Evaluation Metrics
 
-Precision、Recall、F1-score 與單一類別 AP 都需要指定一個目標類別。學生必須在報告中清楚說明計算時將哪一類視為目標類別，並在不同模型之間保持一致。此設定僅用於指標計算，不代表進階任務要求再次執行好／壞圖片分類。
+原始品質分數、信心修正分數與集成品質分數可用來替單張圖片排序；Overlap、Jaccard 與 AP 則是比較整體排序結果的評估指標，不能直接當成單張圖片分數。若只有一組人工最佳 100 張參考集合，應回報 **AP**；只有在建立多組獨立人工參考集合並平均各組 AP 時，才可稱為 **mAP**。
 
-Precision, Recall, F1-score, and single-class AP require a target class to be specified. Students must clearly state which class is treated as the target class during metric computation and use the same definition for all models. This setting is used only for evaluation and does not mean that the advanced task requires another round of Good/Bad image classification.
+Raw quality scores, confidence-adjusted scores, and ensemble quality scores can be used to rank individual images. Overlap@100, Jaccard@100, and AP evaluate the overall ranking result and must not be treated as per-image scores. When only one human-selected Top-100 reference set is available, the result must be reported as **AP**. The term **mAP** is appropriate only when AP is computed for multiple independent reference sets and then averaged.
 
 ### 學習目標 / Learning Objectives
 
@@ -115,14 +124,179 @@ The report must clearly state:
 - 模型輸出為 logits、Softmax 機率或 Sigmoid 分數。  
   Whether the model output is represented as logits, Softmax probabilities, or Sigmoid scores.
 
-進階任務以模型輸出的分數為主要分析對象，因此測試程式必須保留每張圖片的**連續信心分數**。
-The advanced task focuses on the scores produced by the model. Therefore, the evaluation program must preserve the **continuous confidence score** for every image.
+進階任務以每張圖片的品質排序分數為主要分析對象，因此評分程式必須保留每張候選圖片的**連續品質分數**，並確保分數越高代表圖片越好、越接近真實應用需求。
+The advanced task focuses on per-image quality-ranking scores. Therefore, the scoring program must preserve a **continuous quality score** for every candidate image and ensure that higher scores consistently represent better images and a closer match to real-world application requirements.
 
 ---
 
-## 4. 實驗與評估要求 / Experimental and Evaluation Requirements
+## 4. 必要前置軟體與帳號 / Prerequisites
 
-### 4.1 基本任務要求 / Basic Task Requirements
+開始訓練前，請準備：
+
+Before starting, prepare the following:
+
+- Python 3.10 或 3.11 / Python 3.10 or 3.11
+- Git
+- Miniconda、Anaconda 或 Python 虛擬環境  
+  Miniconda, Anaconda, or another Python virtual environment
+- GitHub 帳號 / GitHub account
+- Weights & Biases 帳號 / Weights & Biases account
+- Overleaf 帳號 / Overleaf account
+- 可執行 PyTorch 的電腦 / A computer capable of running PyTorch
+- NVIDIA GPU（非必要，但建議使用）  
+  NVIDIA GPU (optional but recommended)
+
+使用 NVIDIA GPU 時，先確認驅動程式與 GPU 狀態：
+
+When using an NVIDIA GPU, first verify the driver and GPU status:
+
+```bash
+nvidia-smi
+```
+
+若此指令無法執行，請先檢查 NVIDIA 驅動程式、遠端節點、容器或 GPU 權限。
+
+If this command fails, check the NVIDIA driver, remote node allocation, container settings, or GPU permissions.
+
+---
+
+## 5. Python 環境建置 / Python Environment Setup
+
+### 5.1 建立 Conda 環境 / Create a Conda Environment
+
+```bash
+conda create -n training-unit7 python=3.11 -y
+conda activate training-unit7
+python -m pip install --upgrade pip
+```
+
+確認目前使用的 Python：
+
+Verify the active Python interpreter:
+
+```bash
+python --version
+```
+
+Linux 或 macOS：
+
+Linux or macOS:
+
+```bash
+which python
+```
+
+Windows：
+
+Windows:
+
+```powershell
+where python
+```
+
+### 5.2 安裝 PyTorch / Install PyTorch
+
+PyTorch 的安裝方式與作業系統、GPU 及 CUDA 版本有關。使用 GPU 的同學應依 [PyTorch 官方安裝頁面](https://pytorch.org/get-started/locally/) 選擇正確指令。
+
+The PyTorch installation command depends on the operating system, GPU, and CUDA version. GPU users should select the correct command from the [official PyTorch installation page](https://pytorch.org/get-started/locally/).
+
+僅使用 CPU 時，可先使用：
+
+For CPU-only execution:
+
+```bash
+pip install torch torchvision
+```
+
+確認安裝：
+
+Verify the installation:
+
+```bash
+python -c "import torch; print(torch.__version__); print('CUDA available:', torch.cuda.is_available())"
+```
+
+若使用 GPU：
+
+For GPU users:
+
+```bash
+python -c "import torch; print(torch.cuda.get_device_name(0) if torch.cuda.is_available() else 'No CUDA device')"
+```
+
+### 5.3 安裝其他套件 / Install Additional Packages
+
+```bash
+pip install numpy pandas scikit-learn matplotlib pillow tqdm pyyaml wandb
+```
+
+### 5.4 登入 wandb / Log in to wandb
+
+```bash
+wandb login
+```
+
+請勿將 wandb API key 寫入程式碼、README、公開 Repository 或任何會被提交的檔案。
+
+Do not place the wandb API key in source code, the README, a public repository, or any submitted file.
+
+### 5.5 保存環境 / Save the Environment
+
+```bash
+pip freeze > requirements.txt
+```
+
+或使用 Conda：
+
+Or export the Conda environment:
+
+```bash
+conda env export --no-builds > environment.yml
+```
+
+至少提交 `requirements.txt` 或 `environment.yml` 其中一個。
+
+Submit at least one of `requirements.txt` or `environment.yml`.
+
+### 5.6 環境檢查 / Environment Check
+
+建立 `check_environment.py`：
+
+Create `check_environment.py`:
+
+```python
+import torch
+import torchvision
+import numpy
+import pandas
+import sklearn
+import matplotlib
+import PIL
+import wandb
+
+print("PyTorch:", torch.__version__)
+print("Torchvision:", torchvision.__version__)
+print("CUDA available:", torch.cuda.is_available())
+
+if torch.cuda.is_available():
+    print("GPU:", torch.cuda.get_device_name(0))
+
+print("Environment check completed.")
+```
+
+執行：
+
+Run:
+
+```bash
+python check_environment.py
+```
+
+---
+
+## 6. 實驗與評估要求 / Experimental and Evaluation Requirements
+
+### 6.1 基本任務要求 / Basic Task Requirements
 
 1. 使用 **VGG16、ResNet18 與 ResNet50** 完成好／壞二分類。  
    Use **VGG16, ResNet18, and ResNet50** to perform Good/Bad binary classification.
@@ -137,48 +311,54 @@ The advanced task focuses on the scores produced by the model. Therefore, the ev
 6. 列出至少 5 個正確案例與 5 個錯誤案例，分析模型判斷的可能原因。  
    Present at least five correct predictions and five incorrect predictions, and analyze the possible reasons for the model's decisions.
 
-### 4.2 進階任務要求 / Advanced Task Requirements
+### 6.2 進階任務要求 / Advanced Task Requirements
 
-進階任務只要求同學使用模型輸出的分數完成量化評估與分析，不需要重新訓練一個好／壞分類模型，也不需要另外提交逐張圖片的分類結果。可直接使用基本任務中已完成訓練的模型，或選擇其中表現最佳的模型進行深入分析。
+進階任務需另外建立固定候選圖片集與人工最佳 100 張參考集合，並訓練 VGG16、ResNet18 與 ResNet50 產生圖片品質排序分數。人工最佳 100 張只可用於最終比較，不可用於模型訓練、驗證、模型權重選擇、超參數調整或排序指標係數調整。
 
-The advanced task requires only quantitative evaluation and analysis of the scores produced by the model. Students do not need to train another Good/Bad classifier or submit an additional per-image classification result. They may directly use the models trained in the basic task or select the best-performing model for a more detailed analysis.
+The advanced task requires a fixed candidate image pool and a human-selected Top-100 reference set. Students must train VGG16, ResNet18, and ResNet50 to generate image-quality ranking scores. The human-selected Top-100 images may only be used for final comparison and must not be used for training, validation, checkpoint selection, hyperparameter tuning, or adjustment of ranking-score coefficients.
 
 至少完成以下內容：
 
 Complete at least the following items:
 
-1. 保留每張測試圖片的連續模型分數，例如 logits、Softmax probability 或 Sigmoid score。  
-   Preserve the continuous model score for every test image, such as logits, Softmax probabilities, or Sigmoid scores.
-2. 使用模型分數計算並回報以下五項評估項目：Accuracy、Precision、Recall、F1-score，以及 AP／mAP。  
-   Use the model scores to compute and report the following five evaluation items: Accuracy, Precision, Recall, F1-score, and AP/mAP.
-3. 對 Accuracy、Precision、Recall 與 F1-score，說明使用的 confidence threshold，以及該 threshold 的選擇方式。  
-   For Accuracy, Precision, Recall, and F1-score, state the confidence threshold used and explain how it was selected.
-4. AP 與 mAP 必須直接根據連續模型分數計算，不可只使用固定 threshold 後的類別結果。  
-   AP and mAP must be computed directly from continuous model scores rather than only from class predictions obtained after applying a fixed threshold.
-5. 清楚說明指標計算時使用的目標類別。  
-   Clearly state the target class used for metric computation.
-6. 繪製至少一張 Precision–Recall curve，並說明曲線與 AP 的關係。  
-   Plot at least one Precision–Recall curve and explain its relationship with AP.
-7. 比較不同模型或不同超參數設定在五項評估項目上的差異，不可只根據單一指標判斷模型優劣。  
-   Compare different models or hyperparameter settings across all five evaluation items. Model quality must not be judged using only one metric.
-8. 分析類別不平衡、confidence threshold 與高信心錯誤樣本如何影響最終評分。  
-    Analyze how class imbalance, the confidence threshold, and high-confidence errors affect the final scores.
+1. 固定候選圖片集，確保人工、三個模型與所有排序方法使用完全相同的候選圖片。  
+   Fix the candidate image pool so that the human evaluator, all three models, and all ranking methods use exactly the same candidate images.
+2. 在查看模型結果前制定「表現最好且最接近真實需求」的人工挑選規則，並從候選圖片集中人工挑選 100 張圖片。  
+   Define the criteria for images that perform best and most closely match real-world requirements before viewing model results, and manually select 100 images from the candidate pool.
+3. 鎖定人工最佳 100 張參考集合，不可將其加入訓練集或驗證集，也不可在查看模型排名後更換圖片。  
+   Lock the human-selected Top-100 reference set. These images must not enter the training or validation sets and must not be replaced after model rankings are reviewed.
+4. 使用人工參考集合以外的圖片品質分數、1 至 5 級品質等級或其他可重現的品質目標，訓練 VGG16、ResNet18 與 ResNet50。  
+   Train VGG16, ResNet18, and ResNet50 using reproducible quality targets outside the human reference set, such as continuous quality scores or 1-to-5 quality levels.
+5. 三個模型必須採用相同輸出形式，例如連續分數回歸或序位分類，並統一定義分數越高代表圖片越好。  
+   All three models must use the same output format, such as continuous-score regression or ordinal classification, and higher scores must consistently represent better images.
+6. 對完整候選圖片集產生原始品質分數，並確認每張圖片均有唯一、有效且非 `NaN` 的分數。  
+   Generate raw quality scores for the complete candidate pool and verify that every image has one unique, valid, non-`NaN` score.
+7. 至少建立原始品質分數、信心修正分數與三模型集成品質分數，並針對每個模型與排序方法由高至低選出前 100 名。  
+   Construct at least raw quality scores, confidence-adjusted scores, and a three-model ensemble quality score, then select the Top-100 images for each model and ranking method.
+8. 比較模型 Top-100 與人工最佳 100 張，計算交集數量、Overlap 與 Jaccard。  
+   Compare each model Top-100 set with the human-selected Top-100 set and compute the intersection count, Overlap, and Jaccard.
+9. 使用完整候選圖片集的連續排序分數計算 AP，不可只使用前 100 名的 0／1 結果。若只有一組人工參考集合，應回報 AP 而非 mAP。  
+   Compute AP using continuous ranking scores over the full candidate pool rather than binary Top-100 membership alone. When only one human reference set exists, report AP rather than mAP.
+10. 分析至少三類圖片：人工與模型共同選中、人工選中但模型漏掉，以及模型選中但人工未選；每類至少展示 5 張圖片。  
+    Analyze at least three image groups: images selected by both the human and model, images selected only by the human, and images selected only by the model. Show at least five images from each group.
 
-### 4.3 建議結果表格 / Suggested Result Table
+### 6.3 建議結果表格 / Suggested Result Table
 
-| Model | Accuracy | Precision | Recall | F1-score | AP50 | mAP |
-| :--- | ---: | ---: | ---: | ---: | ---: | ---: |
-| VGG16 |  |  |  |  |  |  |
-| ResNet18 |  |  |  |  |  |  |
-| ResNet50 |  |  |  |  |  |  |
+| Model | Ranking Indicator | Intersection Count | Overlap | Jaccard | AP |
+| :--- | :--- | ---: | ---: | ---: | ---: |
+| VGG16 | Raw Quality Score |  |  |  |  |
+| VGG16 | Confidence-Adjusted Score |  |  |  |  |
+| ResNet18 | Raw Quality Score |  |  |  |  |
+| ResNet50 | Raw Quality Score |  |  |  |  |
+| Three-Model Ensemble | Ensemble Quality Score |  |  |  |  |
 
-此表格呈現的是模型的整體評估分數，不是要求同學再次輸出每張圖片的好／壞分類結果。
+此表格比較的是各模型與各排序方式所選出的 Top-100 和人工最佳 100 張之間的相似度。AP 必須使用完整候選圖片集的連續分數計算，不能將 AP、Overlap 或 Jaccard 當成單張圖片的品質分數。
 
-This table summarizes overall model evaluation scores and does not require students to produce another Good/Bad prediction for each image.
+This table compares the similarity between the Top-100 images selected by each model or ranking method and the human-selected Top-100 set. AP must be computed using continuous scores over the complete candidate pool. AP, Overlap, and Jaccard must not be treated as per-image quality scores.
 
 ---
 
-## 5. Weights & Biases 使用要求 / Weights & Biases Requirements
+## 7. Weights & Biases 使用要求 / Weights & Biases Requirements
 
 所有正式訓練實驗皆須使用 wandb 記錄，建議每次 run 至少包含：
 
@@ -192,14 +372,18 @@ All formal training experiments must be logged with wandb. Each run should inclu
   Training loss and validation loss.
 - training accuracy 與 validation accuracy。  
   Training accuracy and validation accuracy.
-- validation Precision、Recall 與 F1-score。  
-  Validation Precision, Recall, and F1-score.
+- 基本任務的 validation Precision、Recall 與 F1-score。  
+  Validation Precision, Recall, and F1-score for the basic task.
+- 進階任務的輸出形式、品質分數範圍、損失函數與品質訓練目標來源。  
+  Output format, quality-score range, loss function, and source of quality-training targets for the advanced task.
+- 進階任務若採回歸，記錄 validation MAE、RMSE 與 Spearman correlation；若採序位分類，記錄 validation Accuracy、Macro F1 與等級 MAE。  
+  For advanced-task regression, log validation MAE, RMSE, and Spearman correlation; for ordinal classification, log validation Accuracy, Macro F1, and level MAE.
 - 最佳 epoch 與最佳驗證結果。  
   The best epoch and best validation result.
-- 最終測試集 Accuracy、Precision、Recall、F1-score、AP 與 mAP。  
-  Final test-set Accuracy, Precision, Recall, F1-score, AP, and mAP.
-- confusion matrix 或 prediction table。  
-  A confusion matrix or prediction table.
+- 基本任務的最終分類指標，以及進階任務的交集數量、Overlap、Jaccard 與 AP。  
+  Final classification metrics for the basic task, and the intersection count, Overlap, Jaccard, and AP for the advanced task.
+- confusion matrix、prediction table 或 Top-100 ranking table。  
+  A confusion matrix, prediction table, or Top-100 ranking table.
 
 wandb run 的名稱應能辨識模型與設定，例如：
 
@@ -211,13 +395,13 @@ resnet18_pretrained_lr1e-4_bs32
 resnet50_scratch_lr1e-3_bs16
 ```
 
-測試集結果應在模型與超參數確定後再執行一次並記錄，不應反覆查看測試結果來調整模型。
+最終人工參考集的比較結果應在模型、超參數與排序分數定義確定後再執行一次並記錄，不應反覆查看人工參考結果來調整模型或排序指標。
 
-The test set should be evaluated and logged only after the model and hyperparameters have been finalized. Students must not repeatedly inspect test-set results to tune the model.
+The final comparison with the human reference set must be performed and logged only after the models, hyperparameters, and ranking-score definitions have been finalized. Students must not repeatedly inspect human-reference results to tune the models or ranking methods.
 
 ---
 
-## 6. 作業繳交規範 / Assignment Submission Guidelines
+## 8. 作業繳交規範 / Assignment Submission Guidelines
 
 ### 必須完成的項目 / Required Tasks
 1. 使用三種模型（VGG16、ResNet18、ResNet50）訓練資料集，並記錄 loss 與 accuracy 曲線。
@@ -228,8 +412,8 @@ The test set should be evaluated and logged only after the model and hyperparame
    Use wandb throughout the training process to record and log logs.
 4. 完成基本任務的好／壞二分類。  
    Complete the Good/Bad binary-classification basic task
-5. 使用模型輸出的連續分數，完成進階任務的五項量化評估與結果分析；不需另外提交逐張圖片的好／壞分類結果。  
-   Use continuous model scores to complete the five quantitative evaluations and result analyses in the advanced task; no additional per-image Good/Bad classification file is required.
+5. 完成進階任務的人工最佳 100 張參考集合、三模型品質分數與 Top-100 排序，並使用交集數量、Overlap、Jaccard 與 AP 比較人工和模型結果。  
+   Complete the human-selected Top-100 reference set, quality scoring, and Top-100 ranking for the three models, and compare human and model results using intersection count, Overlap, Jaccard, and AP.
 6. 提交一份報告總結觀察（含圖表與文字說明）。
    Submit a report summarizing your observations (including charts, screenshots, and textual explanations).
 
@@ -249,7 +433,7 @@ The test set should be evaluated and logged only after the model and hyperparame
   * **模型架構 (Methodology & Model Architecture)**：說明所選用的 CNN 架構與超參數設定。 / Describe the chosen CNN architectures and hyperparameter configurations.
   * **任務定義與標註規則 (Task Definition and Annotation Criteria)** ：說明好／壞影像的定義、自訂品質分數、區分數值門檻及代表性標註範例。 / Describe the definitions of Good and Bad images, the custom quality score, the decision threshold, and representative annotation examples.
   * **基本任務實驗結果與分析 (Basic Task Results & Analysis)** ：呈現 VGG16、ResNet18、ResNet50 的訓練過程與好／壞分類結果。 / Present the training process and Good/Bad classification results of VGG16, ResNet18, and ResNet50.
-  * **進階任務：模型分數與評估指標分析 (Advanced Task: Model Scores and Evaluation Metrics)** ：說明模型輸出的連續分數、confidence threshold 的設定方式，以及 Accuracy、Precision、Recall、F1-score、AP 與 mAP 的意義與分析結果。進階任務不需另外呈現逐張圖片的好／壞分類清單。 / Describe the continuous scores produced by the model, the method used to select the confidence threshold, and the meanings and results of Accuracy, Precision, Recall, F1-score, AP, and mAP. The advanced task does not require an additional per-image Good/Bad prediction list.
+  * **進階任務：品質分數與人工 Top-100 比較 (Advanced Task: Quality Scores and Human Top-100 Comparison)** ：說明人工最佳圖片挑選規則、品質訓練目標、模型輸出形式、原始／信心修正／集成品質分數，以及各模型 Top-100 和人工最佳 100 張在 Overlap、Jaccard 與 AP 上的比較結果。 / Describe the human image-selection criteria, quality-training targets, model output format, raw/confidence-adjusted/ensemble quality scores, and the comparison between each model Top-100 and the human-selected Top-100 set using Overlap, Jaccard, and AP.
   * **結論與心得 (Conclusion & Discussion)**
   * **如何使用 AI 幫忙 (AI Tools Utilization)**
 
@@ -261,10 +445,12 @@ The test set should be evaluated and logged only after the model and hyperparame
   Training and validation accuracy curves.
 - VGG16、ResNet18、ResNet50 的模型比較表。  
   A comparison table for VGG16, ResNet18, and ResNet50.
-- Precision–Recall curve。  
-  A Precision–Recall curve.
-- Accuracy、Precision、Recall、F1-score、AP_Good、AP_Bad 與 mAP 結果表。  
-  A result table containing Accuracy, Precision, Recall, F1-score, AP_Good, AP_Bad, and mAP.
+- 各模型與各排序方式的 Top-100 結果表。  
+  A Top-100 result table for each model and ranking method.
+- 交集數量、Overlap、Jaccard 與 AP 比較表。  
+  A comparison table containing intersection count, Overlap, Jaccard, and AP.
+- 人工與模型共同選中、人工選中但模型漏掉，以及模型選中但人工未選的圖片案例。  
+  Image examples selected by both the human and model, selected only by the human, and selected only by the model.
 - 正確與錯誤預測案例。  
   Correct and incorrect prediction examples.
 - wandb 實驗頁面截圖或圖表匯出結果。  
@@ -272,20 +458,26 @@ The test set should be evaluated and logged only after the model and hyperparame
 
 ### 進階任務的文字分析要求 / Written Analysis Requirements for the Advanced Task
 
-進階任務的重點是解釋模型分數與評估結果，而不是重新列出圖片的好／壞分類。針對每項評估指標，報告至少需要回答：
+進階任務的重點是比較人工最佳 100 張與模型品質排序結果，而不是將 Overlap、Jaccard 或 AP 當成單張圖片的分數。報告至少需要回答：
 
-The advanced task focuses on interpreting model scores and evaluation results rather than listing Good/Bad predictions again. For each evaluation metric, the report must answer at least the following questions:
+The advanced task focuses on comparing the human-selected Top-100 set with model-generated quality rankings. Overlap, Jaccard, and AP must not be treated as per-image scores. The report must answer at least the following questions:
 
-1. 此指標衡量模型的哪一種能力？  
-   What aspect of model performance does this metric measure?
-2. 此指標的數值是多少？  
-   What is the value of this metric?
-3. 三種模型中哪一個模型在此指標表現最好？  
-   Which of the three models performs best according to this metric?
-4. 此結果是否受到類別不平衡或 confidence threshold 影響？  
-   Is the result affected by class imbalance or the confidence threshold?
-5. 此指標與其他指標是否呈現不同結論？原因可能是什麼？  
-   Does this metric lead to a different conclusion from the other metrics? What may explain the difference?
+1. 人工如何定義「表現最好且最接近真實需求」，挑選規則是否在查看模型結果前固定？  
+   How was “best-performing and closest to real-world requirements” defined, and were the human selection criteria fixed before reviewing model results?
+2. 模型使用何種品質訓練目標與輸出形式？分數越高是否一致代表圖片越好？  
+   What quality-training targets and output format were used, and do higher scores consistently indicate better images?
+3. VGG16、ResNet18、ResNet50 在原始品質分數下各自選出的 Top-100，與人工最佳 100 張有多少交集？  
+   How many images overlap between the human-selected Top-100 set and the Top-100 sets produced by VGG16, ResNet18, and ResNet50 using raw quality scores?
+4. 信心修正分數或集成品質分數是否改善 Overlap、Jaccard 或 AP？可能原因為何？  
+   Did confidence-adjusted or ensemble quality scores improve Overlap, Jaccard, or AP, and what may explain the result?
+5. 為什麼 AP 必須使用完整候選圖片集的連續分數？本實驗是否只有一組人工參考集合，因此應回報 AP 而非 mAP？  
+   Why must AP be computed using continuous scores over the complete candidate pool, and does this experiment contain only one human reference set, requiring AP rather than mAP?
+6. 人工與模型共同選中的圖片具有哪些特徵？  
+   What characteristics are shared by images selected by both the human and the model?
+7. 人工選中但模型漏掉的圖片，是否反映模型忽略真實性、任務資訊或特殊場景？  
+   Do images selected only by the human reveal that the model overlooks realism, task-relevant information, or uncommon scenes?
+8. 模型選中但人工未選的圖片，是否顯示模型偏好高亮度、高對比、特定背景或其他非預期特徵？  
+   Do images selected only by the model indicate a preference for high brightness, high contrast, particular backgrounds, or other unintended features?
 
 ## ☁️ GitHub 繳交方式 / GitHub Submission Method
 
